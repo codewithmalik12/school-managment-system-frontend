@@ -18,7 +18,7 @@ export const parseJsonResponse = async (response) => {
             data = JSON.parse(text);
         } catch (e) {
             if (!response.ok) {
-                throw new Error("Backend server is not running or unreachable on https://school-managment-system-backend-production.up.railway.app0. Please start the backend server by running 'node server.js' in Smsbackend folder.");
+                throw new Error("Backend server is not running or unreachable on https://school-managment-system-backend-production.up.railway.app. Please start the backend server by running 'node server.js' in Smsbackend folder.");
             }
             throw new Error("Backend server did not return valid JSON. Please check server output.");
         }
@@ -40,3 +40,4 @@ export const checkConnection = async () => {
         throw error;
     }
 };
+

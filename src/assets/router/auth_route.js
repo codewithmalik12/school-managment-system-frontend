@@ -12,3 +12,4 @@ router.get("/register", (req, res) => {
 });
 
 export default router;
+

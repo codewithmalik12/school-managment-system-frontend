@@ -333,3 +333,4 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
 };
 
 export default SmsRegistration;
+

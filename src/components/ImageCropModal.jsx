@@ -69,3 +69,4 @@ const ImageCropModal = ({ imageSrc, onComplete, onCancel }) => {
 };
 
 export default ImageCropModal;
+
