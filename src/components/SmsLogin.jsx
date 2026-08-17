@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { parseJsonResponse } from '../api';
 
 const SmsLogin = ({ onBack, onNavigateToRegister }) => {
   const [role, setRole] = useState('teacher'); // 'teacher' or 'admin'
@@ -17,12 +18,7 @@ const SmsLogin = ({ onBack, onNavigateToRegister }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, role })
         });
-        const data = await response.json();
-        
-        if (!response.ok) {
-            setError(data.message || 'Login failed');
-            return;
-        }
+        const data = await parseJsonResponse(response);
 
         localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -34,7 +30,7 @@ const SmsLogin = ({ onBack, onNavigateToRegister }) => {
             navigate('/student-dashboard');
         }
     } catch (err) {
-        setError('Server error connecting to backend');
+        setError(err.message || 'Server error connecting to backend');
     }
   };
 

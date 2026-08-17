@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageCropModal from './ImageCropModal';
+import { parseJsonResponse } from '../api';
 
 const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
     const [step, setStep] = useState(1);
@@ -51,12 +52,7 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
                 })
             });
             
-            const data = await response.json();
-
-            if (!response.ok) {
-                setError(data.message || 'Registration failed');
-                return;
-            }
+            const data = await parseJsonResponse(response);
 
             // Success, navigate to respective dashboard
             localStorage.setItem('user', JSON.stringify(data.user));
