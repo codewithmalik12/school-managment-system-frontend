@@ -13,6 +13,7 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [subject, setSubject] = useState('');
     const [grade, setGrade] = useState('');
+    const [department, setDepartment] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
@@ -21,7 +22,8 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
         if (e && e.preventDefault) e.preventDefault();
 
         if (step === 1) {
-            if (!firstName || !lastName || !email || !password || !phoneNumber || (role === 'teacher' ? !subject : !grade)) {
+            const isRoleValid = role === 'teacher' ? !!subject : role === 'student' ? !!grade : true;
+            if (!firstName || !lastName || !email || !password || !phoneNumber || !isRoleValid) {
                 setError('Please fill all required fields');
                 return;
             }
@@ -35,8 +37,20 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ firstName, lastName, email, phoneNumber, subject: role === 'teacher' ? subject : undefined, grade: role === 'student' ? grade : undefined, password, role, dp: dpBase64 })
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email,
+                    phoneNumber,
+                    subject: role === 'teacher' ? subject : undefined,
+                    grade: role === 'student' ? grade : undefined,
+                    department: role === 'admin' ? department : undefined,
+                    password,
+                    role,
+                    dp: dpBase64
+                })
             });
+            
             const data = await response.json();
 
             if (!response.ok) {
@@ -54,7 +68,7 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
                 navigate('/student-dashboard');
             }
         } catch (err) {
-            setError('Server error connecting to backend');
+            setError(err.message || 'Server error connecting to backend. Please check backend server and .env file.');
         }
     };
 
@@ -119,17 +133,24 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
                     <div className="flex bg-zinc-100 p-1 rounded-2xl mb-6">
                         <button
                             type="button"
-                            onClick={() => setRole('teacher')}
+                            onClick={() => { setRole('teacher'); setError(''); }}
                             className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${role === 'teacher' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
                         >
                             Teacher
                         </button>
                         <button
                             type="button"
-                            onClick={() => setRole('student')}
+                            onClick={() => { setRole('student'); setError(''); }}
                             className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${role === 'student' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
                         >
                             Student
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setRole('admin'); setError(''); }}
+                            className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${role === 'admin' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                        >
+                            Admin
                         </button>
                     </div>
 
@@ -201,7 +222,7 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
                                         className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-3.5 text-zinc-800 outline-none transition-all focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/10"
                                     />
                                 </div>
-                            ) : (
+                            ) : role === 'student' ? (
                                 <div>
                                     <label className="text-sm font-semibold text-zinc-700 ml-1">Grade/Class</label>
                                     <input
@@ -210,6 +231,17 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
                                         value={grade}
                                         onChange={(e) => setGrade(e.target.value)}
                                         placeholder="Enter your grade or class"
+                                        className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-3.5 text-zinc-800 outline-none transition-all focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/10"
+                                    />
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="text-sm font-semibold text-zinc-700 ml-1">Department / Designation</label>
+                                    <input
+                                        type="text"
+                                        value={department}
+                                        onChange={(e) => setDepartment(e.target.value)}
+                                        placeholder="e.g. Administration, Principal"
                                         className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-3.5 text-zinc-800 outline-none transition-all focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/10"
                                     />
                                 </div>
