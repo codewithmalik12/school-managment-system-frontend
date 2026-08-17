@@ -2,7 +2,7 @@
 
 // Since we setup the Vite proxy in vite.config.js, we can just use '/api'
 // as our requests will be proxied to http://localhost:3000
-const BASE_URL = '/api';
+const BASE_URL = 'https://school-managment-system-backend-production.up.railway.app/api';
 
 export const checkConnection = async () => {
     try {
