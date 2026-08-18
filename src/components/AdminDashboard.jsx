@@ -209,10 +209,10 @@ const AdminDashboard = () => {
                 });
                 if (response.ok) fetchTeachers();
             } else {
-                const response = await fetch("https://school-managment-system-backend-production.up.railway.app/api/auth/register", {
+                const response = await fetch("/api/admin/teachers", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...body, role: 'teacher' })
+                    body: JSON.stringify({ ...body })
                 });
                 if (response.ok) fetchTeachers();
             }
