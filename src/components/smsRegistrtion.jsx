@@ -32,28 +32,24 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
             setStep(2);
             return;
         }
-
-        setError('');
-        try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    firstName,
-                    lastName,
-                    email,
-                    phoneNumber,
-                    subject: role === 'teacher' ? subject : undefined,
-                    grade: role === 'student' ? grade : undefined,
-                    department: role === 'admin' ? department : undefined,
-                    password,
-                    role,
-                    dp: dpBase64
-                })
-            });
-            
-            const data = await parseJsonResponse(response);
-
+        const response = await fetch('https://school-managment-system-backend-production.up.railway.app/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                subject: role === 'teacher' ? subject : undefined,
+                grade: role === 'student' ? grade : undefined,
+                department: role === 'admin' ? department : undefined,
+                password,
+                role,
+                dp: dpBase64
+            })
+        });
+        
+        const data = await parseJsonResponse(response);
             // Success, navigate to respective dashboard
             localStorage.setItem('user', JSON.stringify(data.user));
             if (role === 'teacher') {
