@@ -13,7 +13,7 @@ const SmsLogin = ({ onBack, onNavigateToRegister }) => {
     e.preventDefault();
     setError('');
     try {
-        const response = await fetch('https://school-managment-system-backend-production.up.railway.app/api/auth/login' {
+        const response = await fetch('https://school-managment-system-backend-production.up.railway.app/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, role })
