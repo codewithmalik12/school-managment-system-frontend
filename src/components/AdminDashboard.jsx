@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageCropModal from './ImageCropModal';
+import { BASE_URL } from '../api';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -36,7 +37,7 @@ const AdminDashboard = () => {
 
     const fetchTeachers = async () => {
         try {
-            const response = await fetch('/api/admin/teachers');
+            const response = await fetch(`${BASE_URL}/admin/teachers`);
             if (response.ok) {
                 const data = await response.json();
                 const mapped = data.teachers.map(t => ({
@@ -59,7 +60,7 @@ const AdminDashboard = () => {
 
     const fetchStudents = async () => {
         try {
-            const response = await fetch('/api/admin/students');
+            const response = await fetch(`${BASE_URL}/admin/students`);
             if (response.ok) {
                 const data = await response.json();
                 const mapped = data.students.map(s => ({
@@ -86,7 +87,7 @@ const AdminDashboard = () => {
 
     const fetchNotices = async () => {
         try {
-            const response = await fetch('/api/admin/notices');
+            const response = await fetch(`${BASE_URL}/admin/notices`);
             if (response.ok) {
                 const data = await response.json();
                 setNotices(data.notices || []);
@@ -202,14 +203,14 @@ const AdminDashboard = () => {
             if (!body.password) delete body.password; // don't update password if empty
 
             if (editingId) {
-                const response = await fetch(`/api/admin/teachers/${editingId}`, {
+                const response = await fetch(`${BASE_URL}/admin/teachers/${editingId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 if (response.ok) fetchTeachers();
             } else {
-                const response = await fetch("/api/admin/teachers", {
+                const response = await fetch(`${BASE_URL}/admin/teachers`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...body })
@@ -242,7 +243,7 @@ const AdminDashboard = () => {
     const handleDeleteTeacher = async (id) => {
         if (!window.confirm("Are you sure you want to remove this teacher?")) return;
         try {
-            await fetch(`/api/admin/teachers/${id}`, { method: 'DELETE' });
+            await fetch(`${BASE_URL}/admin/teachers/${id}`, { method: 'DELETE' });
             setTeachers(teachers.filter(t => t.id !== id));
         } catch (err) {
             console.error(err);
@@ -293,14 +294,14 @@ const AdminDashboard = () => {
             if (!body.password) delete body.password;
 
             if (editingId) {
-                const response = await fetch(`/api/admin/students/${editingId}`, {
+                const response = await fetch(`${BASE_URL}/admin/students/${editingId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 if (response.ok) fetchStudents();
             } else {
-                const response = await fetch(`/api/admin/students`, {
+                const response = await fetch(`${BASE_URL}/admin/students`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -316,7 +317,7 @@ const AdminDashboard = () => {
     const handleDeleteStudent = async (id) => {
         if (!window.confirm("Are you sure you want to delete this student?")) return;
         try {
-            await fetch(`/api/admin/students/${id}`, { method: 'DELETE' });
+            await fetch(`${BASE_URL}/admin/students/${id}`, { method: 'DELETE' });
             setStudents(students.filter(s => s.id !== id));
         } catch (err) {
             console.error(err);
@@ -328,7 +329,7 @@ const AdminDashboard = () => {
         e.preventDefault();
         if (!noticeTitle || !noticeContent) return;
         try {
-            const response = await fetch('/api/admin/notices', {
+            const response = await fetch(`${BASE_URL}/admin/notices`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title: noticeTitle, content: noticeContent, target: noticeTarget })
@@ -347,7 +348,7 @@ const AdminDashboard = () => {
     const handleDeleteNotice = async (id) => {
         if (!window.confirm("Are you sure you want to delete this notice?")) return;
         try {
-            const response = await fetch(`/api/admin/notices/${id}`, { method: 'DELETE' });
+            const response = await fetch(`${BASE_URL}/admin/notices/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 fetchNotices();
             }
@@ -379,7 +380,7 @@ const AdminDashboard = () => {
                 body.password = adminProfileData.password;
             }
 
-            const response = await fetch(`/api/auth/update-profile/${adminUser._id}`, {
+            const response = await fetch(`${BASE_URL}/auth/update-profile/${adminUser._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -423,7 +424,7 @@ const AdminDashboard = () => {
         if (!newDpBase64 || !adminUser) return;
         setIsUpdatingDp(true);
         try {
-            const response = await fetch(`/api/auth/update-dp/${adminUser._id}`, {
+            const response = await fetch(`${BASE_URL}/auth/update-dp/${adminUser._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dp: newDpBase64 })

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageCropModal from './ImageCropModal';
-import { parseJsonResponse } from '../api';
+import { parseJsonResponse, BASE_URL } from '../api';
 
 const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
     const [step, setStep] = useState(1);
@@ -32,24 +32,26 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
             setStep(2);
             return;
         }
-        const response = await fetch('https://school-managment-system-backend-production.up.railway.app/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                firstName,
-                lastName,
-                email,
-                phoneNumber,
-                subject: role === 'teacher' ? subject : undefined,
-                grade: role === 'student' ? grade : undefined,
-                department: role === 'admin' ? department : undefined,
-                password,
-                role,
-                dp: dpBase64
-            })
-        });
-        
-        const data = await parseJsonResponse(response);
+
+        try {
+            const response = await fetch(`${BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email,
+                    phoneNumber,
+                    subject: role === 'teacher' ? subject : undefined,
+                    grade: role === 'student' ? grade : undefined,
+                    department: role === 'admin' ? department : undefined,
+                    password,
+                    role,
+                    dp: dpBase64
+                })
+            });
+            
+            const data = await parseJsonResponse(response);
             // Success, navigate to respective dashboard
             localStorage.setItem('user', JSON.stringify(data.user));
             if (role === 'teacher') {

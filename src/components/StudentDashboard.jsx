@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageCropModal from './ImageCropModal';
+import { BASE_URL } from '../api';
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
@@ -48,7 +49,7 @@ const StudentDashboard = () => {
 
     const fetchNotices = async () => {
         try {
-            const response = await fetch('/api/admin/notices');
+            const response = await fetch(`${BASE_URL}/admin/notices`);
             if (response.ok) {
                 const data = await response.json();
                 // Filter notices targeted to students or all
@@ -79,7 +80,7 @@ const StudentDashboard = () => {
         if (!newDpBase64 || !user) return;
         setIsUpdatingDp(true);
         try {
-            const response = await fetch(`/api/auth/update-dp/${user._id}`, {
+            const response = await fetch(`${BASE_URL}/auth/update-dp/${user._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dp: newDpBase64 })
@@ -119,7 +120,7 @@ const StudentDashboard = () => {
                 updateBody.password = password;
             }
 
-            const response = await fetch(`/api/auth/update-profile/${user._id}`, {
+            const response = await fetch(`${BASE_URL}/auth/update-profile/${user._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateBody)

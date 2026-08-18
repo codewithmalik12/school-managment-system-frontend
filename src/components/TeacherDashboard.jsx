@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageCropModal from './ImageCropModal';
+import { BASE_URL } from '../api';
 
 const TeacherDashboard = () => {
     const navigate = useNavigate();
@@ -61,7 +62,7 @@ const TeacherDashboard = () => {
 
     const fetchAssignedClasses = async (teacherId) => {
         try {
-            const response = await fetch(`/api/teacher/classes/${teacherId}`);
+            const response = await fetch(`${BASE_URL}/teacher/classes/${teacherId}`);
             if (response.ok) {
                 const data = await response.json();
                 setAssignedClasses(data.classes || []);
@@ -74,7 +75,7 @@ const TeacherDashboard = () => {
     const handleClassClick = async (cls) => {
         setSelectedClass(cls);
         try {
-            const response = await fetch(`/api/teacher/students/${encodeURIComponent(cls.className)}`);
+            const response = await fetch(`${BASE_URL}/teacher/students/${encodeURIComponent(cls.className)}`);
             if (response.ok) {
                 const data = await response.json();
                 setClassStudents(data.students || []);
@@ -102,7 +103,7 @@ const TeacherDashboard = () => {
         e.preventDefault();
         if (!selectedStudent || !selectedClass) return;
         try {
-            const response = await fetch('/api/teacher/marks', {
+            const response = await fetch(`${BASE_URL}/teacher/marks`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -146,7 +147,7 @@ const TeacherDashboard = () => {
                 updateBody.password = password;
             }
 
-            const response = await fetch(`/api/auth/update-profile/${user._id}`, {
+            const response = await fetch(`${BASE_URL}/auth/update-profile/${user._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateBody)
@@ -189,7 +190,7 @@ const TeacherDashboard = () => {
         if (!newDpBase64 || !user) return;
         setIsUpdatingDp(true);
         try {
-            const response = await fetch(`/api/auth/update-dp/${user._id}`, {
+            const response = await fetch(`${BASE_URL}/auth/update-dp/${user._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dp: newDpBase64 })

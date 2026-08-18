@@ -1,6 +1,4 @@
-// Centralized backend API helpers
-
-const BASE_URL = 'https://school-managment-system-backend-production.up.railway.app/api';
+export const BASE_URL = import.meta.env.VITE_API_URL || 'https://school-managment-system-backend-production.up.railway.app/api';
 
 export const parseJsonResponse = async (response) => {
     const contentType = response.headers.get('content-type');
