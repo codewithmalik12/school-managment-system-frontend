@@ -139,13 +139,6 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
                         >
                             Student
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => { setRole('admin'); setError(''); }}
-                            className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${role === 'admin' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
-                        >
-                            Admin
-                        </button>
                     </div>
 
                     {error && (
@@ -216,7 +209,7 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
                                         className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-3.5 text-zinc-800 outline-none transition-all focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/10"
                                     />
                                 </div>
-                            ) : role === 'student' ? (
+                            ) : (
                                 <div>
                                     <label className="text-sm font-semibold text-zinc-700 ml-1">Grade/Class</label>
                                     <input
@@ -225,17 +218,6 @@ const SmsRegistration = ({ onBack, onNavigateToLogin }) => {
                                         value={grade}
                                         onChange={(e) => setGrade(e.target.value)}
                                         placeholder="Enter your grade or class"
-                                        className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-3.5 text-zinc-800 outline-none transition-all focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/10"
-                                    />
-                                </div>
-                            ) : (
-                                <div>
-                                    <label className="text-sm font-semibold text-zinc-700 ml-1">Department / Designation</label>
-                                    <input
-                                        type="text"
-                                        value={department}
-                                        onChange={(e) => setDepartment(e.target.value)}
-                                        placeholder="e.g. Administration, Principal"
                                         className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-3.5 text-zinc-800 outline-none transition-all focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/10"
                                     />
                                 </div>
