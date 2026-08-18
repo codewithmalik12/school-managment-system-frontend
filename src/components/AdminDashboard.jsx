@@ -75,6 +75,10 @@ const AdminDashboard = () => {
                     feeStatus: s.feeStatus || 'Unpaid',
                     feeAmount: s.feeAmount || 0,
                     feeDueDate: s.feeDueDate ? s.feeDueDate.substring(0, 10) : '',
+                    latestPaymentMethod: s.latestPaymentMethod || (s.paymentHistory && s.paymentHistory.length > 0 ? s.paymentHistory[s.paymentHistory.length - 1].paymentMethod : ''),
+                    latestTransactionId: s.latestTransactionId || (s.paymentHistory && s.paymentHistory.length > 0 ? s.paymentHistory[s.paymentHistory.length - 1].transactionId : ''),
+                    latestPaidAt: s.latestPaidAt || (s.paymentHistory && s.paymentHistory.length > 0 ? s.paymentHistory[s.paymentHistory.length - 1].paidAt : null),
+                    paymentHistory: s.paymentHistory || [],
                     results: s.results || [],
                     dp: s.dp || ''
                 }));
@@ -443,9 +447,28 @@ const AdminDashboard = () => {
     };
 
     // Calculations
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const currentMonthName = monthNames[currentMonth];
+
+    const monthlyCollectedFees = students
+        .filter(s => s.feeStatus === 'Paid')
+        .reduce((sum, s) => {
+            const hasPayment = s.paymentHistory && s.paymentHistory.length > 0;
+            if (hasPayment) {
+                const recent = s.paymentHistory[s.paymentHistory.length - 1];
+                const d = new Date(recent.paidAt);
+                if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                    return sum + (recent.amount || s.feeAmount || 0);
+                }
+            }
+            return sum + (s.feeAmount || 0);
+        }, 0);
+
     const totalCollectedFees = students
         .filter(s => s.feeStatus === 'Paid')
-        .reduce((sum, s) => sum + s.feeAmount, 0);
+        .reduce((sum, s) => sum + (s.feeAmount || 0), 0);
 
     const pendingFeesCount = students
         .filter(s => s.feeStatus !== 'Paid').length;
@@ -489,7 +512,7 @@ const AdminDashboard = () => {
 
             <div className="flex-1 overflow-auto pb-4 pr-1 md:pr-2 custom-scrollbar">
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
                     <div className="bg-slate-900/50 backdrop-blur-2xl p-5 md:p-6 rounded-3xl shadow-xl border border-white/5 relative overflow-hidden group transition-all hover:border-cyan-500/30">
                         <div className="absolute -right-6 -top-6 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl transition-all group-hover:bg-cyan-500/20"></div>
                         <div className="relative z-10 flex justify-between items-start">
@@ -522,11 +545,27 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
+                    <div className="bg-slate-900/50 backdrop-blur-2xl p-5 md:p-6 rounded-3xl shadow-xl border border-white/5 relative overflow-hidden group transition-all hover:border-emerald-500/30">
+                        <div className="absolute -right-6 -top-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl transition-all group-hover:bg-emerald-500/20"></div>
+                        <div className="relative z-10 flex justify-between items-start">
+                            <div>
+                                <h3 className="text-slate-400 text-xs uppercase tracking-wider font-bold mb-2">Monthly Revenue ({currentMonthName})</h3>
+                                <p className="text-3xl md:text-4xl font-extrabold text-emerald-400 mb-2 pb-1">${monthlyCollectedFees}</p>
+                                <p className="text-xs text-emerald-300 font-semibold flex items-center bg-emerald-500/10 inline-flex px-2 py-1 rounded-md">
+                                    Current month collections
+                                </p>
+                            </div>
+                            <div className="p-3 bg-slate-800 rounded-2xl text-emerald-400 border border-white/5 shadow-inner">
+                                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 to-slate-900 p-5 md:p-6 shadow-xl border border-indigo-500/30 transition-all hover:border-indigo-400/50">
                         <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl transition-transform group-hover:scale-150 duration-700 z-0"></div>
                         <div className="relative z-10 flex justify-between items-start">
                             <div>
-                                <h3 className="text-indigo-200 text-xs uppercase tracking-wider font-bold mb-2">Fees Collected</h3>
+                                <h3 className="text-indigo-200 text-xs uppercase tracking-wider font-bold mb-2">Total Fees Collected</h3>
                                 <p className="text-3xl md:text-4xl font-extrabold text-white mb-2 pb-1">${totalCollectedFees}</p>
                                 <p className="text-xs text-indigo-300 font-medium flex items-center">From Paid status students</p>
                             </div>
@@ -859,6 +898,7 @@ const AdminDashboard = () => {
                                             <th className="px-6 py-4 text-xs tracking-wider text-slate-400 uppercase font-semibold">Grade</th>
                                             <th className="px-6 py-4 text-xs tracking-wider text-slate-400 uppercase font-semibold">Fee status</th>
                                             <th className="px-6 py-4 text-xs tracking-wider text-slate-400 uppercase font-semibold">Fee Amount</th>
+                                            <th className="px-6 py-4 text-xs tracking-wider text-slate-400 uppercase font-semibold">Payment Details</th>
                                             <th className="px-6 py-4 text-xs tracking-wider text-slate-400 uppercase font-semibold text-right">Actions</th>
                                         </tr>
                                     </thead>
@@ -885,6 +925,16 @@ const AdminDashboard = () => {
                                                     }`}>{student.feeStatus}</span>
                                                 </td>
                                                 <td className="px-6 py-4 font-semibold text-white text-sm">${student.feeAmount}</td>
+                                                <td className="px-6 py-4 text-xs text-slate-300">
+                                                    {student.feeStatus === 'Paid' ? (
+                                                        <div>
+                                                            <span className="block font-bold text-emerald-400">{student.latestPaymentMethod || 'Paid Online'}</span>
+                                                            <span className="block text-[10px] text-slate-400 font-mono">{student.latestTransactionId || 'TXN-Recorded'}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-500 font-medium">—</span>
+                                                    )}
+                                                </td>
                                                 <td className="px-6 py-4 flex justify-end space-x-2">
                                                     <button onClick={() => handleEditStudentClick(student)} className="p-2 rounded-lg bg-slate-800 text-cyan-400 hover:bg-cyan-500 hover:text-white transition-colors" title="Edit">
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>

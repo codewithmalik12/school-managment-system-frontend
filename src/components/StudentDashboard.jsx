@@ -26,6 +26,69 @@ const StudentDashboard = () => {
     const [rawCropImageSrc, setRawCropImageSrc] = useState(null);
     const [isUpdatingDp, setIsUpdatingDp] = useState(false);
 
+    // Payment States
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('Bank Card'); // 'Bank Card', 'EasyPaisa', 'JazzCash'
+    const [cardNumber, setCardNumber] = useState('');
+    const [cardHolder, setCardHolder] = useState('');
+    const [cardExpiry, setCardExpiry] = useState('');
+    const [cardCvv, setCardCvv] = useState('');
+    const [mobileAccountNo, setMobileAccountNo] = useState('');
+    const [mobileAccountName, setMobileAccountName] = useState('');
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [paymentError, setPaymentError] = useState('');
+    const [paymentSuccessTxn, setPaymentSuccessTxn] = useState(null);
+
+    const handleProcessPayment = async (e) => {
+        e.preventDefault();
+        setPaymentError('');
+        if (!user) return;
+
+        let accountDetails = '';
+        if (selectedPaymentMethod === 'Bank Card') {
+            if (!cardNumber || !cardHolder || !cardExpiry || !cardCvv) {
+                setPaymentError('Please fill all required card details');
+                return;
+            }
+            accountDetails = `Card ending in ${cardNumber.slice(-4)}`;
+        } else {
+            if (!mobileAccountNo || !mobileAccountName) {
+                setPaymentError('Please fill mobile account number and account name');
+                return;
+            }
+            accountDetails = `${selectedPaymentMethod} (${mobileAccountNo})`;
+        }
+
+        setIsProcessingPayment(true);
+        try {
+            const response = await fetch(`${BASE_URL}/auth/pay-fee`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    studentId: user._id,
+                    paymentMethod: selectedPaymentMethod,
+                    accountDetails,
+                    amount: user.feeAmount
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                setPaymentError(data.message || 'Payment processing failed');
+                return;
+            }
+
+            setUser(data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            setPaymentSuccessTxn(data.transactionId);
+            setShowPaymentModal(false);
+        } catch (err) {
+            setPaymentError('Server error processing payment');
+        } finally {
+            setIsProcessingPayment(false);
+        }
+    };
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
@@ -420,21 +483,190 @@ const StudentDashboard = () => {
                 </div>
 
                 {user?.feeStatus !== 'Paid' ? (
-                    <div className="bg-pink-500/5 border border-pink-500/10 p-4 rounded-2xl flex items-start gap-3">
-                        <svg className="w-5 h-5 text-pink-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        <div>
-                            <h5 className="text-pink-400 font-bold text-xs uppercase mb-1">Payment Overdue</h5>
-                            <p className="text-xs text-slate-400 leading-relaxed">
-                                Please pay the total amount by {user?.feeDueDate ? new Date(user.feeDueDate).toLocaleDateString() : 'the due date'} to avoid late penalty charges. Payment can be deposited at the Accounts Office.
-                            </p>
+                    <div className="space-y-4">
+                        <div className="bg-pink-500/5 border border-pink-500/10 p-4 rounded-2xl flex items-start gap-3">
+                            <svg className="w-5 h-5 text-pink-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            <div>
+                                <h5 className="text-pink-400 font-bold text-xs uppercase mb-1">Payment Overdue</h5>
+                                <p className="text-xs text-slate-400 leading-relaxed">
+                                    Please pay the total amount by {user?.feeDueDate ? new Date(user.feeDueDate).toLocaleDateString() : 'the due date'} using Bank Card, EasyPaisa, or JazzCash.
+                                </p>
+                            </div>
                         </div>
+
+                        <button
+                            onClick={() => { setShowPaymentModal(true); setPaymentError(''); }}
+                            className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span>Pay Fees Online Now</span>
+                        </button>
                     </div>
                 ) : (
                     <div className="bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl flex items-center gap-3">
                         <svg className="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p className="text-xs text-slate-400 leading-relaxed">Thank you! Your tuition fees are fully cleared. No pending actions.</p>
+                        <div>
+                            <p className="text-xs text-slate-300 font-bold">Tuition Fees Cleared!</p>
+                            {user?.latestTransactionId && (
+                                <p className="text-[10px] text-emerald-400 font-medium mt-0.5">Method: {user.latestPaymentMethod || 'Online'} | Txn ID: {user.latestTransactionId}</p>
+                            )}
+                        </div>
                     </div>
                 )}
+            </div>
+        </div>
+    );
+
+    const renderPaymentModal = () => (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+            <div className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-2xl relative">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 className="text-xl font-extrabold text-white">Select Payment Method</h3>
+                        <p className="text-xs text-slate-400 mt-1">Amount to pay: <span className="text-indigo-400 font-bold">${user?.feeAmount || 0}</span></p>
+                    </div>
+                    <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 p-1 bg-slate-800/80 rounded-2xl mb-6">
+                    <button
+                        type="button"
+                        onClick={() => setSelectedPaymentMethod('Bank Card')}
+                        className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                            selectedPaymentMethod === 'Bank Card' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                        }`}
+                    >
+                        💳 Card
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedPaymentMethod('EasyPaisa')}
+                        className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                            selectedPaymentMethod === 'EasyPaisa' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                        }`}
+                    >
+                        🟢 EasyPaisa
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedPaymentMethod('JazzCash')}
+                        className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                            selectedPaymentMethod === 'JazzCash' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                        }`}
+                    >
+                        🔴 JazzCash
+                    </button>
+                </div>
+
+                {paymentError && (
+                    <div className="mb-4 p-3 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-medium">
+                        {paymentError}
+                    </div>
+                )}
+
+                <form onSubmit={handleProcessPayment} className="space-y-4">
+                    {selectedPaymentMethod === 'Bank Card' ? (
+                        <>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-300 mb-1">Cardholder Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={cardHolder}
+                                    onChange={(e) => setCardHolder(e.target.value)}
+                                    placeholder="John Doe"
+                                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-300 mb-1">Card Number</label>
+                                <input
+                                    type="text"
+                                    required
+                                    maxLength="16"
+                                    value={cardNumber}
+                                    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="4532 1234 5678 9012"
+                                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-300 mb-1">Expiry Date</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="MM/YY"
+                                        maxLength="5"
+                                        value={cardExpiry}
+                                        onChange={(e) => setCardExpiry(e.target.value)}
+                                        className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-300 mb-1">CVV</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        maxLength="4"
+                                        value={cardCvv}
+                                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
+                                        placeholder="123"
+                                        className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="p-3 bg-slate-800/50 rounded-xl border border-white/5 text-xs text-slate-300">
+                                <p className="font-bold text-white mb-1">Mobile Wallet Details ({selectedPaymentMethod})</p>
+                                <p>Please enter your registered mobile account details to process tuition payment.</p>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-300 mb-1">Account Holder Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={mobileAccountName}
+                                    onChange={(e) => setMobileAccountName(e.target.value)}
+                                    placeholder="Enter registered account name"
+                                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-300 mb-1">Mobile Account Number</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={mobileAccountNo}
+                                    onChange={(e) => setMobileAccountNo(e.target.value)}
+                                    placeholder="03xx-xxxxxxx"
+                                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    <div className="pt-4 flex gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setShowPaymentModal(false)}
+                            className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-sm transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isProcessingPayment}
+                            className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center space-x-2"
+                        >
+                            {isProcessingPayment ? 'Processing...' : `Pay $${user?.feeAmount || 0}`}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
@@ -610,6 +842,8 @@ const StudentDashboard = () => {
                      renderSettings()}
                 </div>
             </main>
+
+            {showPaymentModal && renderPaymentModal()}
         </div>
     );
 };
